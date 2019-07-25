@@ -1,0 +1,15 @@
+# pycharm
+.idea
+venv
+__pycache__
+
+
+# python
+*.py[cod]
+chartdata.py
+getdata.py
+setting.py
+
+# file
+chart/*.html
+
