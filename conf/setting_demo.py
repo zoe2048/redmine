@@ -1,19 +1,17 @@
 # 认证信息
-REDMINE_URL = ''
-REDMINE_KEY = ''
+url = ''
+key = ''
 
 
 # 项目信息
-PROJECT_POOL = {
+pool = {
     'safety': {
-        'PROJECT_ID': 'safety',
-        'PROJECT_NAME': '安全环保',
-        'SPEC_ID': 'safety',
+        'pro_id': 'safety',
+        'cn_name': '安全',
     },
     'pay': {
-        'PROJECT_ID': 'pay-platform',
-        'PROJECT_NAME': '统一支付平台',
-        'SPEC_ID': 'pay-platform',
+        'pro_id': 'pay-platform',
+        'cn_name': '统一支付平台',
     }
 }
 
