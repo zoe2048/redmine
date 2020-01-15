@@ -13,11 +13,11 @@ chart_path = os.path.join(base_path, 'chart')
 
 def get_result(by_type, pro_id, L=None):
     """
-    获取资源及资源对应的issue数量
-    :param by_type: 资源类别，version: 目标版本，category：类别；field：自定义属性字段，tracker：跟踪类型
+    获取资源和资源对应的bug数量
+    :param by_type: 资源类别（如version: 目标版本，category：类别）
     :param pro_id: 项目标识
-    :param L: 列表，若每个资源类别下的分类太多如目标版本下的版本若太多，不建议使用列表存储
-    :return: 由(资源类别下的具体资源分类名称，资源下的issue总数量)构成的元祖为单位组成的列表
+    :param L: 存储数据列表
+    :return: [(分类，分类bug数量)]
     """
     if L is None:
         L = []
@@ -32,47 +32,34 @@ def get_result(by_type, pro_id, L=None):
 
 def chart_by_type(by_type, pro_id, title, item='bug'):
     """
-    生成项目bug数量按不同分类的统计图表
-    非缺陷程度（按测试分类、目标版本）的bug统计图类型为折线图；缺陷程度的bug统计图表类型为柱状图
-    :param by_type: 分类，默认按版本
+    生成项目按不同分类的bug分布图表
+    :param by_type: 分类
     :param pro_id: 项目标识
-    :param title: 生成的图表默认的title
+    :param title: 生成的图表title
     :param item: 生成的图表上的图示
     :return: html格式的图表
     """
-    attr = []
-    v1 = []
     result = get_result(by_type, pro_id)
-    if len(result) != 0 and by_type != 'filed':
-        for i in range(len(result)):
-            attr.append(result[i][0])
-            v1.append(result[i][1])
+    if len(result) != 0:
+        attr = [x[0] for x in result]
+        v1 = [x[1] for x in result]
         line = Line(title, width=1200, height=600)
-        # line.add(item, attr, v1, is_label_show=True)
         line.add(item, attr, v1, is_label_show=True, xaxis_interval=0, xaxis_rotate=-30)
         if os.path.exists(os.path.join(chart_path, '%s.html' % title)):
             os.remove(os.path.join(chart_path, '%s.html' % title))
         line.render(os.path.join(chart_path, '%s.html' % title))
-    elif len(result) != 0 and by_type == 'field':
-        for i in range(len(result)):
-            attr.append(result[i][0])
-            v1.append(result[i][1])
-        bar = Bar(title)
-        bar.add(item, attr, v1)
-        if os.path.exists(os.path.join(chart_path, '%s.html' % title)):
-            os.remove(os.path.join(chart_path, '%s.html' % title))
-        bar.render(os.path.join(chart_path, '%s.html' % title))
     else:
         print('没有数据可展示或数据条数为0')
 
 
-def chart_by_one_ver(by_type, pro_id, L=None):
+def chart_by_one_ver(by_type, pro_id, item, title, L=None):
     """
-    为项目的单一测试版本产生的bug生成按bug分类的柱形图，按缺陷程度的柱形图
-    由于单版本的不存在按版本的统计图表，单独为项目单一版本写的此方法
-    :param by_type: 分类，默认按版本
+    生成项目特定版本下的不同分类的bug分布图表
+    :param by_type: 分类
     :param pro_id: 项目标识
-    :param L: 资源类别名称、资源issue数量组成的列表
+    :param L: 资源类别名称、资源bug数量组成的列表
+    :param item: 图表图示
+    :param title: 图表title
     :return: html格式的图表
     """
     if L is None:
@@ -80,34 +67,17 @@ def chart_by_one_ver(by_type, pro_id, L=None):
         result = newgetdata.get_issue_by_one_ver(by_type, pro_id)
         for v in result:
             L.append(v)
-        attr = []
-        v1 = []
     else:
         print('L的类型必须为None，请检查')
-    if len(L) != 0 and by_type == 'category':
-        for i in range(len(L)):
-            attr.append(L[i][0])
-        for j in range(len(L)):
-            v1.append(L[j][1])
-        v = input('请输入项目版本号，格式：V5.2.1\n')
-        name = project_name_cn
-        bar = Bar('%s %s 不同分类bug分布' % (name, v))
-        bar.add('bug分类', attr, v1)
-        if os.path.exists(os.path.join(chart_path, '%s %s 不同分类bug分布.html' % (name, v))):
-            os.remove(os.path.join(chart_path, '%s %s 不同分类bug分布.html' % (name, v)))
-        bar.render(os.path.join(chart_path, '%s %s 不同分类bug分布.html' % (name, v)))
-    elif len(L) != 0 and by_type == 'field':
-        for i in range(len(L)):
-            attr.append(L[i][0])
-        for j in range(len(L)):
-            v1.append(L[j][1])
-        v = input('请输入项目的版本号，格式V5.2.1\n')
-        name = project_name_cn
-        bar = Bar('%s %s bug缺陷程度分布' % (name, v))
-        bar.add('bug缺陷程度', attr, v1)
-        if os.path.exists(os.path.join(chart_path, '%s %s bug缺陷程度分布.html' % (name, v))):
-            os.remove(os.path.join(chart_path, '%s %s bug缺陷程度分布.html' % (name, v)))
-        bar.render(os.path.join(chart_path, '%s %s bug缺陷程度分布.html' % (name, v)))
+    if len(L) != 0:
+        attr = [x[0] for x in L]
+        v1 = [x[1] for x in L]
+        v_name = [x[2] for x in L][0]
+        bar = Bar(title+v_name)
+        bar.add(item, attr, v1)
+        if os.path.exists(os.path.join(chart_path, '{}{}.html'.format(title, v_name))):
+            os.remove(os.path.join(chart_path, '{}{}.html'.format(title, v_name)))
+        bar.render(os.path.join(chart_path, '{}{}.html'.format(title, v_name)))
     else:
         print('没有数据可展示')
 
@@ -115,22 +85,21 @@ def chart_by_one_ver(by_type, pro_id, L=None):
 if __name__ == '__main__':
     s = input(
         '请输入要生成图表数据类型：\n'
-        '1 表示项目所有版本内的信息\n'
-        '2 表示项目某个特定版本内的bug信息\n'
-        '3 表示单元测试\n'
-        '4 表示doctest\n'
+        '1 项目所有版本内的信息\n'
+        '2 项目某个特定版本内的bug信息\n'
+        '3 单元测试\n'
+        '4 doctest\n'
     )
     if s == '1':
-        chart_by_type('version', project_id, '%s不同版本所有跟踪类型的记录统计' % project_name_cn)
-        chart_by_type('category', project_id, '%s不同测试类别bug分布' % project_name_cn)
-        chart_by_type('field', project_id, '%sbug缺陷程度分布' % project_name_cn)
-        chart_by_type('tracker', project_id, '%s不同版本bug分布' % project_name_cn)
+        chart_by_type('version', project_id, '{}不同版本bug分布'.format(project_name_cn))
+        chart_by_type('category', project_id, '{}不同测试模块bug分布'.format(project_name_cn))
+        chart_by_type('field', project_id, '{}bug缺陷程度分布'.format(project_name_cn))
     if s == '2':
-        chart_by_one_ver('category', project_id)
-        chart_by_one_ver('field', project_id)
+        chart_by_one_ver('category', project_id, 'bug', '{}不同测试模块bug分布'.format(project_name_cn))
+        chart_by_one_ver('field', project_id, 'bug', '{}bug缺陷程度分布'.format(project_name_cn))
     if s == '3':
-        result = get_result('field', project_id)
-        print(result)
+        results = get_result('field', project_id)
+        print(results)
     if s == '4':
         from doctest import testmod
         testmod()
