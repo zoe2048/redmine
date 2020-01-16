@@ -1,5 +1,6 @@
-from pyecharts import *
-import newgetdata
+from pyecharts import options as opts
+from pyecharts.charts import Bar, Line
+import getdata
 from conf import setting
 import os
 
@@ -21,7 +22,7 @@ def get_result(by_type, pro_id, L=None):
     """
     if L is None:
         L = []
-    result = newgetdata.get_bugs_num(by_type, pro_id)
+    result = getdata.get_bugs_num(by_type, pro_id)
     if result is not None:
         for r in result:
             L.append(r)
@@ -41,10 +42,12 @@ def chart_by_type(by_type, pro_id, title, item='bug'):
     """
     result = get_result(by_type, pro_id)
     if len(result) != 0:
-        attr = [x[0] for x in result]
-        v1 = [x[1] for x in result]
-        line = Line(title, width=1200, height=600)
-        line.add(item, attr, v1, is_label_show=True, xaxis_interval=0, xaxis_rotate=-30)
+        xaxis_data = [x[0] for x in result]
+        yaxis_data = [x[1] for x in result]
+        line = Line()
+        line.add_xaxis(xaxis_data)
+        line.add_yaxis(item, yaxis_data)
+        line.set_global_opts(title_opts=opts.TitleOpts(title=title))
         if os.path.exists(os.path.join(chart_path, '%s.html' % title)):
             os.remove(os.path.join(chart_path, '%s.html' % title))
         line.render(os.path.join(chart_path, '%s.html' % title))
@@ -64,18 +67,22 @@ def chart_by_one_ver(by_type, pro_id, item, title, L=None):
     """
     if L is None:
         L = []
-        result = newgetdata.get_issue_by_one_ver(by_type, pro_id)
+        result = getdata.get_issue_by_one_ver(by_type, pro_id)
         for v in result:
             L.append(v)
+        xaxis_data = []
+        yaxis_data = []
     else:
         print('L的类型必须为None，请检查')
     if len(L) != 0:
-        attr = [x[0] for x in L]
-        v1 = [x[1] for x in L]
+        xaxis_data = [x[0] for x in L]
+        yaxis_data = [x[1] for x in L]
         v_name = [x[2] for x in L][0]
         title = ''.join([title, v_name, '版本'])
-        bar = Bar(title)
-        bar.add(item, attr, v1)
+        bar = Bar()
+        bar.add_xaxis(xaxis_data)
+        bar.add_yaxis(item, yaxis_data)
+        bar.set_global_opts(title_opts=opts.TitleOpts(title=title))
         if os.path.exists(os.path.join(chart_path, '{}.html'.format(title))):
             os.remove(os.path.join(chart_path, '{}.html'.format(title)))
         bar.render(os.path.join(chart_path, '{}.html'.format(title)))
@@ -93,11 +100,11 @@ def test():
     )
     if s == '1':
         chart_by_type('version', project_id, '{}不同版本bug分布'.format(project_name_cn))
-        chart_by_type('category', project_id, '{}不同测试模块bug分布'.format(project_name_cn))
+        chart_by_type('category', project_id, '{}不同测试类别bug分布'.format(project_name_cn))
         chart_by_type('field', project_id, '{}bug缺陷程度分布'.format(project_name_cn))
     if s == '2':
-        chart_by_one_ver('category', project_id, 'bug', '{}不同测试模块bug分布'.format(project_name_cn))
-        chart_by_one_ver('field', project_id, 'bug', '{}bug缺陷程度分布'.format(project_name_cn))
+        chart_by_one_ver('category', project_id, 'bug分类', '{}不同类别bug分布'.format(project_name_cn))
+        chart_by_one_ver('field', project_id, 'bug缺陷程度', '{}不同缺陷程度bug分布'.format(project_name_cn))
     if s == '3':
         results = get_result('field', project_id)
         print(results)
@@ -108,5 +115,4 @@ def test():
 
 if __name__ == '__main__':
     test()
-
 
