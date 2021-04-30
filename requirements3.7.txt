@@ -15,4 +15,4 @@ pyecharts-javascripthon==0.0.6
 pyecharts-jupyter-installer==0.0.3
 python-redmine==2.2.1
 requests==2.22.0
-urllib3==1.25.7
+urllib3==1.25.8
